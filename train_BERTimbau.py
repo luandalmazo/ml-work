@@ -16,6 +16,7 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+from transformers import EarlyStoppingCallback
 import torch
 
 
@@ -190,12 +191,12 @@ def train_eval_once(train_df, val_df, tokenizer, model_name, args, run_dir, titl
         per_device_eval_batch_size=args.batch_size,
         num_train_epochs=args.epochs,
         load_best_model_at_end=True,
-        metric_for_best_model="f1",
+        metric_for_best_model="eval_loss",
         report_to="none",
         seed=args.seed,
     )
 
-    trainer = Trainer(model=model, args=targs, train_dataset=train_ds, eval_dataset=val_ds, compute_metrics=compute_metrics)
+    trainer = Trainer(model=model, args=targs, train_dataset=train_ds, eval_dataset=val_ds, compute_metrics=compute_metrics, callbacks=[EarlyStoppingCallback(early_stopping_patience=2)])
     trainer.train()
 
     metrics = trainer.evaluate(val_ds)
